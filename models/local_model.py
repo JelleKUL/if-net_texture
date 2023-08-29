@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_models():
     return {'ShapeNet32Vox': ShapeNet32Vox, 'ShapeNet128Vox': ShapeNet128Vox, 'ShapeNetPoints': ShapeNetPoints, 'TEXR':TEXR}
@@ -52,7 +52,7 @@ class ShapeNet32Vox(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.Tensor(displacments).to(device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)
@@ -136,7 +136,7 @@ class ShapeNet128Vox(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.Tensor(displacments).to(device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)
@@ -202,15 +202,15 @@ class ShapeNetPoints(nn.Module):
     def __init__(self, hidden_dim=256):
         super(ShapeNetPoints, self).__init__()
         # 128**3 res input
-        self.conv_in = nn.Conv3d(1, 16, 3, padding=1, padding_mode='border')
-        self.conv_0 = nn.Conv3d(16, 32, 3, padding=1, padding_mode='border')
-        self.conv_0_1 = nn.Conv3d(32, 32, 3, padding=1, padding_mode='border')
-        self.conv_1 = nn.Conv3d(32, 64, 3, padding=1, padding_mode='border')
-        self.conv_1_1 = nn.Conv3d(64, 64, 3, padding=1, padding_mode='border')
-        self.conv_2 = nn.Conv3d(64, 128, 3, padding=1, padding_mode='border')
-        self.conv_2_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')
-        self.conv_3 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')
-        self.conv_3_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')
+        self.conv_in = nn.Conv3d(1, 16, 3, padding=1, padding_mode='reflect')
+        self.conv_0 = nn.Conv3d(16, 32, 3, padding=1, padding_mode='reflect')
+        self.conv_0_1 = nn.Conv3d(32, 32, 3, padding=1, padding_mode='reflect')
+        self.conv_1 = nn.Conv3d(32, 64, 3, padding=1, padding_mode='reflect')
+        self.conv_1_1 = nn.Conv3d(64, 64, 3, padding=1, padding_mode='reflect')
+        self.conv_2 = nn.Conv3d(64, 128, 3, padding=1, padding_mode='reflect')
+        self.conv_2_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')
+        self.conv_3 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')
+        self.conv_3_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')
 
         feature_size = (1 +  16 + 32 + 64 + 128 + 128 ) * 7
         self.fc_0 = nn.Conv1d(feature_size, hidden_dim, 1)
@@ -237,7 +237,7 @@ class ShapeNetPoints(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.Tensor(displacments).to(device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)
@@ -245,35 +245,35 @@ class ShapeNetPoints(nn.Module):
         p_features = p.transpose(1, -1)
         p = p.unsqueeze(1).unsqueeze(1)
         p = torch.cat([p + d for d in self.displacments], dim=2)  # (B,1,7,num_samples,3)
-        feature_0 = F.grid_sample(x, p, padding_mode='border')  # out : (B,C (of x), 1,1,sample_num)
+        feature_0 = F.grid_sample(x, p, padding_mode='reflect')  # out : (B,C (of x), 1,1,sample_num)
 
         net = self.actvn(self.conv_in(x))
         net = self.conv_in_bn(net)
-        feature_1 = F.grid_sample(net, p, padding_mode='border')  # out : (B,C (of x), 1,1,sample_num)
+        feature_1 = F.grid_sample(net, p, padding_mode='reflect')  # out : (B,C (of x), 1,1,sample_num)
         net = self.maxpool(net)
 
         net = self.actvn(self.conv_0(net))
         net = self.actvn(self.conv_0_1(net))
         net = self.conv0_1_bn(net)
-        feature_2 = F.grid_sample(net, p, padding_mode='border')  # out : (B,C (of x), 1,1,sample_num)
+        feature_2 = F.grid_sample(net, p, padding_mode='reflect')  # out : (B,C (of x), 1,1,sample_num)
         net = self.maxpool(net)
 
         net = self.actvn(self.conv_1(net))
         net = self.actvn(self.conv_1_1(net))
         net = self.conv1_1_bn(net)
-        feature_3 = F.grid_sample(net, p, padding_mode='border')  # out : (B,C (of x), 1,1,sample_num)
+        feature_3 = F.grid_sample(net, p, padding_mode='reflect')  # out : (B,C (of x), 1,1,sample_num)
         net = self.maxpool(net)
 
         net = self.actvn(self.conv_2(net))
         net = self.actvn(self.conv_2_1(net))
         net = self.conv2_1_bn(net)
-        feature_4 = F.grid_sample(net, p, padding_mode='border')
+        feature_4 = F.grid_sample(net, p, padding_mode='reflect')
         net = self.maxpool(net)
 
         net = self.actvn(self.conv_3(net))
         net = self.actvn(self.conv_3_1(net))
         net = self.conv3_1_bn(net)
-        feature_5 = F.grid_sample(net, p, padding_mode='border')
+        feature_5 = F.grid_sample(net, p, padding_mode='reflect')
 
         # here every channel corresponds to one feature.
 
@@ -304,17 +304,18 @@ class TEXR(nn.Module):
     def __init__(self, hidden_dim=256):
         super(TEXR, self).__init__()
 
-        self.conv_in = nn.Conv3d(4, 16, 3, padding=1, padding_mode='border')  # out: 256 ->m.p. 128
-        self.conv_0 = nn.Conv3d(16, 32, 3, padding=1, padding_mode='border')  # out: 128
-        self.conv_0_1 = nn.Conv3d(32, 32, 3, padding=1, padding_mode='border')  # out: 128 ->m.p. 64
-        self.conv_1 = nn.Conv3d(32, 64, 3, padding=1, padding_mode='border')  # out: 64
-        self.conv_1_1 = nn.Conv3d(64, 64, 3, padding=1, padding_mode='border')  # out: 64 -> mp 32
-        self.conv_2 = nn.Conv3d(64, 128, 3, padding=1, padding_mode='border')  # out: 32
-        self.conv_2_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')  # out: 32 -> mp 16
-        self.conv_3 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')  # out: 16
-        self.conv_3_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')  # out: 16 -> mp 8
-        self.conv_4 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')  # out: 8
-        self.conv_4_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='border')  # out: 8
+        self.conv_in = nn.Conv3d(4, 16, 3, padding=1, padding_mode='reflect')  # out: 256 ->m.p. 128
+        print(self.conv_in)
+        self.conv_0 = nn.Conv3d(16, 32, 3, padding=1, padding_mode='reflect')  # out: 128
+        self.conv_0_1 = nn.Conv3d(32, 32, 3, padding=1, padding_mode='reflect')  # out: 128 ->m.p. 64
+        self.conv_1 = nn.Conv3d(32, 64, 3, padding=1, padding_mode='reflect')  # out: 64
+        self.conv_1_1 = nn.Conv3d(64, 64, 3, padding=1, padding_mode='reflect')  # out: 64 -> mp 32
+        self.conv_2 = nn.Conv3d(64, 128, 3, padding=1, padding_mode='reflect')  # out: 32
+        self.conv_2_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')  # out: 32 -> mp 16
+        self.conv_3 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')  # out: 16
+        self.conv_3_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')  # out: 16 -> mp 8
+        self.conv_4 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')  # out: 8
+        self.conv_4_1 = nn.Conv3d(128, 128, 3, padding=1, padding_mode='reflect')  # out: 8
 
         feature_size = (4 +  16 + 32 + 64 + 128 + 128 + 128) * 7 + 3
         self.fc_0 = nn.Conv1d(feature_size, hidden_dim * 2, 1)
@@ -342,7 +343,7 @@ class TEXR(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.Tensor(displacments).to(device)
 
     def forward(self, p, x):
         # x = x.unsqueeze(1)
@@ -350,45 +351,45 @@ class TEXR(nn.Module):
         p_features = p.transpose(1, -1)
         p = p.unsqueeze(1).unsqueeze(1)
         p = torch.cat([p + d for d in self.displacments], dim=2)
-        feature_0 = F.grid_sample(x, p, padding_mode='border')
+        feature_0 = F.grid_sample(x, p, padding_mode='reflect')
         # print(feature_0.shape)
         # print(feature_0[:,:,:,0,0])
 
         net = self.actvn(self.conv_in(x))
         net = self.conv_in_bn(net)
-        feature_1 = F.grid_sample(net, p, padding_mode='border')
+        feature_1 = F.grid_sample(net, p, padding_mode='reflect')
         net = self.maxpool(net) #out 128
 
         net = self.actvn(self.conv_0(net))
         net = self.actvn(self.conv_0_1(net))
         net = self.conv0_1_bn(net)
-        feature_2 = F.grid_sample(net, p, padding_mode='border')
+        feature_2 = F.grid_sample(net, p, padding_mode='reflect')
         net = self.maxpool(net) #out 64
 
         net = self.actvn(self.conv_1(net))
         net = self.actvn(self.conv_1_1(net))
         net = self.conv1_1_bn(net)
-        feature_3 = F.grid_sample(net, p, padding_mode='border')
+        feature_3 = F.grid_sample(net, p, padding_mode='reflect')
         net = self.maxpool(net)
 
         net = self.actvn(self.conv_2(net))
         net = self.actvn(self.conv_2_1(net))
         net = self.conv2_1_bn(net)
-        feature_4 = F.grid_sample(net, p, padding_mode='border')
+        feature_4 = F.grid_sample(net, p, padding_mode='reflect')
         net = self.maxpool(net)
 
         net = self.actvn(self.conv_3(net))
         net = self.actvn(self.conv_3_1(net))
         net = self.conv3_1_bn(net)
-        feature_5 = F.grid_sample(net, p, padding_mode='border')
+        feature_5 = F.grid_sample(net, p, padding_mode='reflect')
         net = self.maxpool(net)
 
         net = self.actvn(self.conv_4(net))
         net = self.actvn(self.conv_4_1(net))
         net = self.conv4_1_bn(net)
-        feature_6 = F.grid_sample(net, p, padding_mode='border')
+        feature_6 = F.grid_sample(net, p, padding_mode='reflect')
 
-        # here every channel corresponse to one feature.
+        # here every channel corresponds to one feature.
 
         features = torch.cat((feature_0, feature_1, feature_2, feature_3, feature_4, feature_5, feature_6),
                              dim=1)  # (B, features, 1,7,sample_num)

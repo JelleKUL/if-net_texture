@@ -43,7 +43,7 @@ class VoxelizedDataset(Dataset):
         path = self.data[idx]
 
         path = os.path.normpath(path)
-        challange = path.split(os.sep)[-4]
+        challenge = path.split(os.sep)[-4]
         split = path.split(os.sep)[-3]
         gt_file_name = path.split(os.sep)[-2]
         full_file_name = os.path.splitext(path.split(os.sep)[-1])[0]
