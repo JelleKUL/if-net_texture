@@ -28,7 +28,6 @@ def remove_points(mesh, indices, blackoutTexture=True):
     if mesh.vertex_normals is not None:
         cpy.vertex_normals = np.delete(
             mesh.vertex_normals, indices, axis=0)
-
     if mesh.faces is not None:
         face_indices = np.where(
             np.any(np.isin(mesh.faces[:], indices, assume_unique=False),
@@ -75,7 +74,6 @@ def remove_points(mesh, indices, blackoutTexture=True):
             cpy.faces_normal_indices -= fix_ni_idx
             cpy.face_normals = np.delete(
                 mesh.face_normals, unused_ni, axis=0)
-
     return cpy
 
 
@@ -84,11 +82,9 @@ def render_texture(texture, tex_coords, tri_indices):
         texture = texture[:, :, 0:3]
     elif len(texture.shape) == 2:
         texture = np.concatenate([texture, texture, texture], axis=2)
-
     renderer = UVTrianglesRenderer.with_standalone_ctx(
         (texture.shape[1], texture.shape[0])
     )
-
     return renderer.render(tex_coords, tri_indices, texture, True)
 
 
@@ -163,5 +159,4 @@ def shoot_holes(vertices, n_holes, dropout, mask_faces=None, faces=None,
         _, indices = kdtree.query(center, k=size)
         to_crop.append(indices)
     to_crop = np.unique(np.concatenate(to_crop))
-
     return to_crop

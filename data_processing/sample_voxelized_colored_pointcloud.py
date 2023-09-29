@@ -8,6 +8,7 @@ import multiprocessing as mp
 from multiprocessing import Pool
 import argparse
 import random
+from context import config
 import config.config_loader as cfg_loader
 import traceback
 import tqdm
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     grid_points = utils.create_grid_points_from_xyz_bounds(*bbox, res)
     kdtree = KDTree(grid_points)
 
-    print('Fining all input partial paths for voxelization.')
+    print('Finding all input partial paths for voxelization.')
     paths = glob(cfg['data_path'] + cfg['preprocessing']['voxelized_colored_pointcloud_sampling']['input_files_regex'])
 
     print('Start voxelization.')

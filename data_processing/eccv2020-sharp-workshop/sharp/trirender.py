@@ -52,7 +52,7 @@ class UVTrianglesRenderer:
     @staticmethod
     def with_standalone_ctx(output_size: Tuple[int, int]) -> "UVTrianglesRenderer":
         return UVTrianglesRenderer(
-            MGL.create_standalone_context(require=330), output_size
+            MGL.create_context(standalone=True), output_size
         )
 
     @staticmethod
@@ -106,14 +106,15 @@ class UVTrianglesRenderer:
 
     def render(
         self,
-        tex_coords: NDArray[(Any, 2), float],
-        tri_indices: NDArray[(Any, 3), int],
-        texture: NDArray[(Any, Any, 3), float],
-        flip_y: bool = True,
-    ) -> NDArray[(Any, Any, 3), float]:
-        assert isinstance(tex_coords, NDArray[(Any, 2), float])
-        assert isinstance(tri_indices, NDArray[(Any, 3), int])
-        assert isinstance(texture, NDArray[(Any, Any, 3), float])
+        tex_coords,
+        tri_indices,
+        texture,
+        flip_y = True,
+    ):
+        
+        #assert isinstance(tex_coords, NDArray[(Any, 2), float])
+        #assert isinstance(tri_indices, NDArray[(Any, 3), int])
+        #assert isinstance(texture, NDArray[(Any, Any, 3), float])
 
         if flip_y:
             texture = np.flipud(texture)

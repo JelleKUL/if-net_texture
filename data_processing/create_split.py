@@ -1,6 +1,7 @@
 from glob import glob
 import random
 import numpy as np
+from context import config
 import config.config_loader as cfg_loader
 import argparse
 import random

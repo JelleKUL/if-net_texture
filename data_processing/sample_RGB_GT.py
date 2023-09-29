@@ -5,6 +5,7 @@ import os
 import multiprocessing as mp
 from multiprocessing import Pool
 import argparse
+from context import config
 import config.config_loader as cfg_loader
 import utils
 import traceback
