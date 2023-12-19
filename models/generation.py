@@ -51,7 +51,7 @@ class Generator(object):
             full_pred.append(pred_rgb.squeeze(0).detach().cpu().transpose(0,1))
 
         pred_rgb = torch.cat(full_pred, dim=0).numpy()
-        pred_rgb.astype(np.int)[0]
+        pred_rgb.astype(np.int32)[0]
         pred_rgb = np.clip(pred_rgb, 0, 255)
 
         return pred_rgb

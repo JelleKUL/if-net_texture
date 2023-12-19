@@ -52,7 +52,7 @@ class VoxelizedDataset(Dataset):
                    '{}_voxelized_colored_point_cloud_res{}_points{}_bbox{}.npz'\
             .format(full_file_name, self.res, self.pointcloud_samples, self.bbox_str))
 
-
+        
         R = np.load(voxel_path)['R']
         G = np.load(voxel_path)['G']
         B = np.load(voxel_path)['B']
