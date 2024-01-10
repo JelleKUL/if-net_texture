@@ -2,7 +2,7 @@ input_type: pointcloud
 input_resolution: 128
 input_points_number: 100000
 model: TEXR
-folder_name: shapenet_1 # The name of the target folder
+folder_name: shapenet_channel # The name of the target folder
 data_path: dataset/SHARP2020/shapenet/ # The name of the source folder
 data_bounding_box: [-1, 1, -1, 1, -1, 1]
 split_file: dataset/SHARP2020/shapenet/split.npz
