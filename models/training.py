@@ -5,7 +5,10 @@ from torch.nn import functional as F
 import os
 from glob import glob
 import numpy as np
-
+import torch
+#from torch.utils.tensorboard import SummaryWriter
+#writer = SummaryWriter()
+import wandb
 
 
 
@@ -29,6 +32,10 @@ class Trainer(object):
             print(self.checkpoint_path)
             os.makedirs(self.checkpoint_path)
         self.val_min = None
+
+        self.run = wandb.init(project="if-net")
+        self.run.watch(self.model)
+
 
 
     def train_step(self,batch):
@@ -74,6 +81,7 @@ class Trainer(object):
             if epoch % 1 == 0:
                 self.save_checkpoint(epoch)
                 val_loss = self.compute_val_loss()
+                self.run.log({"val_loss": val_loss, "epoch":epoch})
 
                 if self.val_min is None:
                     self.val_min = val_loss
@@ -84,11 +92,17 @@ class Trainer(object):
                     #     os.remove(path)
                     np.save(self.exp_path + 'val_min',[epoch,val_loss])
 
-
+            i = 0.0
             for batch in train_data_loader:
                 loss = self.train_step(batch)
                 print("Current loss: {}".format(loss))
                 sum_loss += loss
+                i+=1
+                #writer.add_scalar("Loss/train", loss, epoch)
+                self.run.log({"loss": loss, "batch": batch})
+            
+            self.run.log({"train_loss": sum_loss/i, "epoch":epoch})
+        self.run.finish()
 
 
 

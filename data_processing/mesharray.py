@@ -76,6 +76,9 @@ class MeshArray ():
 
     def filter_points(self, outPath, nrOfVariants, nrOfHoles, dropout):
         
+        # Create the ground truth data
+        
+        
         # step 1: remove a number of points from the lists
         # voxelise the partial pointcloud
         # relink the colors to the voxels
