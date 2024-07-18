@@ -1,0 +1,26 @@
+input_type: pointcloud
+input_resolution: 128
+input_points_number: 100000
+model: TEXR
+folder_name: shapenet # The name of the target folder
+data_path: dataset/SHARP2020/shapenetrgb/ # The name of the source folder
+data_bounding_box: [-1, 1, -1, 1, -1, 1]
+split_file: dataset/SHARP2020/shapenetrgb/split.npz
+preprocessing:
+ trainTestRatio: 0.8 # The ratio between the training and testing split
+ color_sampling:
+  input_files_regex: /*/*/*_normalized_*.npz
+  sample_number: 100000
+ voxelized_colored_pointcloud_sampling:
+  input_files_regex: /*/*/*-partial-*.txt
+training:
+ batch_size: 2
+ sample_points_per_object: 50000
+ optimizer: Adam
+generation:
+ retrieval_resolution: 256
+ checkpoint: -1
+ batch_points: 800000
+ mode: test
+ retrieval_threshold: 0.5
+
